@@ -23,6 +23,10 @@ UPLOAD_DIR = "data/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
+# ===========================
+# Upload Document
+# ===========================
+
 @router.post("/upload")
 async def upload_document(file: UploadFile = File(...)):
 
@@ -59,4 +63,45 @@ async def upload_document(file: UploadFile = File(...)):
         "stored": stored,
         "graph": graph_status,
         "analysis": analysis
+    }
+
+
+# ===========================
+# Get Uploaded Documents
+# ===========================
+
+@router.get("/")
+async def get_documents():
+
+    documents = []
+
+    if not os.path.exists(UPLOAD_DIR):
+        return {
+            "status": "success",
+            "documents": []
+        }
+
+    for filename in os.listdir(UPLOAD_DIR):
+
+        filepath = os.path.join(UPLOAD_DIR, filename)
+
+        if os.path.isfile(filepath):
+
+            documents.append({
+                "id": filename,
+                "name": filename,
+                "type": filename.split(".")[-1].upper(),
+                "size_kb": round(os.path.getsize(filepath) / 1024, 2),
+                "uploaded_at": os.path.getctime(filepath)
+            })
+
+    documents.sort(
+        key=lambda x: x["uploaded_at"],
+        reverse=True
+    )
+
+    return {
+        "status": "success",
+        "count": len(documents),
+        "documents": documents
     }

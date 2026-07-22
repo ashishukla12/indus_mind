@@ -1,76 +1,227 @@
-import { useToast } from "../common/Toast";
 import { useState, useCallback } from "react";
 import { UploadCloud, CheckCircle2, FileText } from "lucide-react";
 import { uploadDocument } from "../../api/client";
+import { useToast } from "../common/Toast";
+import { useNavigate } from "react-router-dom";
 
 export default function UploadPage() {
+
   const [queue, setQueue] = useState([]);
   const [dragActive, setDragActive] = useState(false);
-  const showToast = useToast();                 // 👈 hook call karo component ke andar
 
-  const handleFiles = useCallback((fileList) => {
-    const files = Array.from(fileList).map((f) => ({ name: f.name, status: "processing" }));
-    setQueue((q) => [...files, ...q]);
-    files.forEach((f) => {
-      uploadDocument({ name: f.name }).then(() => {
-        setQueue((q) =>
-          q.map((item) => (item.name === f.name && item.status === "processing" ? { ...item, status: "processed" } : item))
+  const showToast = useToast();
+  const navigate = useNavigate();
+
+  const handleFiles = useCallback(async (fileList) => {
+
+    const files = Array.from(fileList);
+
+    const uploadItems = files.map(file => ({
+      name: file.name,
+      status: "uploading"
+    }));
+
+    setQueue(prev => [...uploadItems, ...prev]);
+
+    for (const file of files) {
+
+      try {
+
+        await uploadDocument(file);
+
+        setQueue(prev =>
+          prev.map(item =>
+            item.name === file.name
+              ? { ...item, status: "completed" }
+              : item
+          )
         );
-        showToast(`${f.name} uploaded and indexed`, "success");   // 👈 yahaan call karo
-      });
-    });
+
+        showToast(`${file.name} uploaded successfully`, "success");
+
+      } catch (err) {
+
+        console.error(err);
+
+        setQueue(prev =>
+          prev.map(item =>
+            item.name === file.name
+              ? { ...item, status: "failed" }
+              : item
+          )
+        );
+
+        showToast(`${file.name} upload failed`, "error");
+      }
+
+    }
+
   }, [showToast]);
 
   return (
+
     <div className="p-6">
+
       <div
-        onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
+        className={`border-2 border-dashed rounded-xl p-12 text-center transition-all ${
+          dragActive
+            ? "border-signal bg-signal/5"
+            : "border-line bg-panel"
+        }`}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragActive(true);
+        }}
         onDragLeave={() => setDragActive(false)}
         onDrop={(e) => {
+
           e.preventDefault();
+
           setDragActive(false);
-          if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files);
+
+          if (e.dataTransfer.files.length) {
+            handleFiles(e.dataTransfer.files);
+          }
+
         }}
-        className={`border-2 border-dashed rounded-lg p-12 flex flex-col items-center justify-center text-center transition-colors ${
-          dragActive ? "border-signal bg-signal/5" : "border-line bg-panel"
-        }`}
       >
-        <UploadCloud size={28} className="text-muted mb-3" />
-        <p className="text-sm text-text mb-1">Drag and drop documents here</p>
-        <p className="text-xs text-muted mb-4">PDF, DOCX, XLSX, PNG, JPG supported</p>
-        <label className="px-4 py-2 rounded-md bg-signal text-ink text-sm font-medium cursor-pointer hover:bg-signal/90 transition-colors">
-          Browse files
+
+        <UploadCloud
+          size={42}
+          className="mx-auto text-muted mb-4"
+        />
+
+        <h2 className="text-lg font-semibold mb-2">
+          Upload Industrial Documents
+        </h2>
+
+        <p className="text-sm text-muted mb-5">
+          Upload PDF manuals, SOPs, inspection reports,
+          maintenance logs and technical documents.
+        </p>
+
+        <label className="inline-flex items-center px-5 py-3 rounded-md bg-signal text-black font-medium cursor-pointer hover:opacity-90">
+
+          Browse Files
+
           <input
-            type="file"
+            hidden
             multiple
-            className="hidden"
-            onChange={(e) => e.target.files?.length && handleFiles(e.target.files)}
+            type="file"
+            accept=".pdf"
+            onChange={(e) =>
+              e.target.files &&
+              handleFiles(e.target.files)
+            }
           />
+
         </label>
+
       </div>
 
-      {queue.length > 0 && (
-        <div className="mt-6 border border-line rounded-lg divide-y divide-line overflow-hidden">
-          {queue.map((f, i) => (
-            <div key={i} className="flex items-center justify-between px-4 py-3 bg-panel">
-              <div className="flex items-center gap-2">
-                <FileText size={14} className="text-muted" />
-                <span className="text-sm">{f.name}</span>
-              </div>
-              {f.status === "processing" ? (
-                <span className="tag-mono text-xs text-signal flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-signal pulse-dot" />
-                  Parsing…
-                </span>
-              ) : (
-                <span className="tag-mono text-xs text-steel flex items-center gap-1.5">
-                  <CheckCircle2 size={13} /> Indexed
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      {
+
+        queue.length > 0 && (
+
+          <div className="mt-8 border border-line rounded-lg overflow-hidden">
+
+            {
+
+              queue.map((file, index) => (
+
+                <div
+                  key={index}
+                  className="flex justify-between items-center px-4 py-3 border-b border-line"
+                >
+
+                  <div className="flex items-center gap-2">
+
+                    <FileText size={16} />
+
+                    <span>{file.name}</span>
+
+                  </div>
+
+                  {
+
+                    file.status === "uploading" && (
+
+                      <span className="text-yellow-500 text-sm">
+                        Uploading...
+                      </span>
+
+                    )
+
+                  }
+
+                  {
+
+                    file.status === "completed" && (
+
+                      <span className="flex items-center gap-2 text-green-500">
+
+                        <CheckCircle2 size={16} />
+
+                        Indexed
+
+                      </span>
+
+                    )
+
+                  }
+
+                  {
+
+                    file.status === "failed" && (
+
+                      <span className="text-red-500">
+
+                        Failed
+
+                      </span>
+
+                    )
+
+                  }
+
+                </div>
+
+              ))
+
+            }
+
+          </div>
+
+        )
+
+      }
+
+      {
+
+        queue.some(f => f.status === "completed") && (
+
+          <div className="mt-6">
+
+            <button
+
+              onClick={() => navigate("/documents")}
+
+              className="px-5 py-3 rounded-md bg-signal text-black font-medium"
+
+            >
+
+              View Uploaded Documents
+
+            </button>
+
+          </div>
+
+        )
+
+      }
+
     </div>
+
   );
+
 }

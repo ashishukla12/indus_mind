@@ -96,3 +96,84 @@ export async function uploadDocument(file) {
   await delay(600);
   return { id: `doc-${Date.now()}`, title: file?.name || "Untitled", status: "processed" };
 }
+
+export async function fetchGraph() {
+  const res = await fetch(`${BASE_URL}/graph/view`);
+
+  if (!res.ok) {
+    throw new Error("Graph fetch failed");
+  }
+
+  const data = await res.json();
+
+  const radius = 180;
+  const centerX = 400;
+  const centerY = 220;
+
+  const nodes = data.nodes.map((node, index) => {
+    const angle = (2 * Math.PI * index) / data.nodes.length;
+
+    return {
+      id: node.id,
+      label: node.name,
+      type: "component",
+      x: centerX + radius * Math.cos(angle),
+      y: centerY + radius * Math.sin(angle),
+    };
+  });
+
+  const edges = data.relationships.map((rel) => ({
+    from: rel.source,
+    to: rel.target,
+    label: rel.relation,
+  }));
+
+  return {
+    nodes,
+    edges,
+  };
+}
+
+export async function runAnalysis(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch(`${BASE_URL}/analysis/run`, {
+    method: "POST",
+    body: formData,
+  });
+
+  if (!res.ok) {
+    throw new Error("Analysis failed");
+  }
+
+  return await res.json();
+}
+
+export async function semanticSearch(query) {
+  const res = await fetch(`${BASE_URL}/chat/search`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      query,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error("Semantic Search Failed");
+  }
+
+  return await res.json();
+}
+
+export async function fetchBackendDocuments() {
+  const res = await fetch(`${BASE_URL}/documents`);
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch documents");
+  }
+
+  return await res.json();
+}
