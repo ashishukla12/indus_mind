@@ -74,17 +74,22 @@ const EARLY_WARNING_RESPONSE = {
 };
 
 export async function sendChatQuery(query) {
-  await delay(900);
-  const q = query.toLowerCase();
 
-  if (q.includes("compressor")) {
-    return { query, ...COMPRESSOR_RESPONSE };
+  const res = await fetch(`${BASE_URL}/chat/ask`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      question: query
+    })
+  });
+
+  if (!res.ok) {
+    throw new Error("Chat request failed");
   }
-  if (q.includes("early warning") || q.includes("warning before")) {
-    return { query, ...EARLY_WARNING_RESPONSE };
-  }
-  // default: Pump-101 full RCA trace for any other question
-  return { ...SAMPLE_RCA_RESPONSE, query };
+
+  return await res.json();
 }
 
 export async function uploadDocument(file) {
