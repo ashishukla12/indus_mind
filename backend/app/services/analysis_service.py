@@ -75,13 +75,13 @@ Document:
 
 def analyze_document(filename, text):
 
-    summary = generate_summary(text)
+    summary = generate_summary(text[:12000])
 
-    graph = extract_graph_from_text(text)
+    graph = extract_graph_from_text(text[:12000])
 
     metadata = create_metadata(filename, [text])
 
-    questions = generate_questions(text)
+    questions = generate_questions(text[:12000])
 
     return {
         "status": "success",

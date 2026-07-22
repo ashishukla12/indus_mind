@@ -18,11 +18,18 @@ def generate_answer(question: str):
 
     if not results:
         return {
-            "answer": "I could not find any relevant information in the uploaded documents.",
-            "confidence": "Low",
-            "trace": [],
-            "citations": []
+    "answer": response.choices[0].message.content,
+
+    "confidence": "High",
+
+    "sources": [
+        {
+            "document": item["source"],
+            "chunk": item["chunk_number"]
         }
+        for item in results
+    ]
+}
 
     context = "\n\n".join(
         item["chunk"] for item in results

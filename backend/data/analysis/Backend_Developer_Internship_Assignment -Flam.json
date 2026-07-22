@@ -1,0 +1,127 @@
+{
+  "status": "success",
+  "summary": "Here is a summary of the industrial document:\n\n**Purpose**: \nThe purpose of this document is to outline the requirements for building a CLI-based background job queue system called QueueCTL. The system should manage background jobs with worker processes, handle retries using exponential backoff, and maintain a Dead Letter Queue (DLQ) for permanently failed jobs.\n\n**Key Equipment**: \nThe key equipment required for this project is a computer with a compatible operating system and a programming language of choice (Python, Go, Node.js, or Java).\n\n**Process**: \nThe process involves designing and implementing a job queue system that meets the specified requirements, including:\n\n1. Enqueuing and managing background jobs\n2. Running multiple worker processes\n3. Retrying failed jobs automatically with exponential backoff\n4. Moving jobs to a Dead Letter Queue after exhausting retries\n5. Persistent job storage across restarts\n6. Providing a CLI interface for all operations\n\n**Safety Notes**: \nThe safety notes for this project are primarily related to ensuring the correctness and reliability of the system, including:\n\n1. Handling edge cases and concurrency safely\n2. Preventing duplicate job execution and ensuring job data persistence across restarts\n3. Implementing retry and backoff mechanisms correctly\n4. Providing clear documentation and testing instructions\n5. Avoiding common mistakes such as hardcoded configuration values, missing retry or DLQ functionality, and non-persistent data.\n\nNote that this project is an internship assignment, and the safety notes are focused on ensuring the quality and reliability of the system rather than physical safety.",
+  "metadata": [
+    {
+      "source": "Backend_Developer_Internship_Assignment -Flam.pdf",
+      "chunk_number": 1,
+      "length": 5351
+    }
+  ],
+  "knowledge_graph": {
+    "entities": [
+      {
+        "name": "QueueCTL",
+        "type": "System"
+      },
+      {
+        "name": "Job",
+        "type": "Entity"
+      },
+      {
+        "name": "Worker",
+        "type": "Process"
+      },
+      {
+        "name": "Dead Letter Queue",
+        "type": "Queue"
+      },
+      {
+        "name": "CLI",
+        "type": "Interface"
+      },
+      {
+        "name": "GitHub Repository",
+        "type": "Repository"
+      },
+      {
+        "name": "README",
+        "type": "Document"
+      }
+    ],
+    "relationships": [
+      {
+        "source": "QueueCTL",
+        "relation": "MANAGES",
+        "target": "Job"
+      },
+      {
+        "source": "Worker",
+        "relation": "PROCESSES",
+        "target": "Job"
+      },
+      {
+        "source": "Job",
+        "relation": "MOVED_TO",
+        "target": "Dead Letter Queue"
+      },
+      {
+        "source": "CLI",
+        "relation": "INTERACTS_WITH",
+        "target": "QueueCTL"
+      },
+      {
+        "source": "GitHub Repository",
+        "relation": "CONTAINS",
+        "target": "QueueCTL"
+      },
+      {
+        "source": "README",
+        "relation": "DOCUMENTS",
+        "target": "QueueCTL"
+      }
+    ]
+  },
+  "suggested_questions": [
+    {
+      "question": "What is the primary purpose of the QueueCTL system?",
+      "answers": [
+        "To manage background jobs with worker processes",
+        "To handle retries using exponential backoff",
+        "To maintain a Dead Letter Queue (DLQ) for permanently failed jobs",
+        "All of the above"
+      ],
+      "correctAnswer": 4
+    },
+    {
+      "question": "What is the minimum number of fields that each job must contain?",
+      "answers": [
+        "2",
+        "3",
+        "5",
+        "6"
+      ],
+      "correctAnswer": 4
+    },
+    {
+      "question": "What is the purpose of the 'attempts' field in a job?",
+      "answers": [
+        "To track the number of times a job has been retried",
+        "To track the number of times a job has been executed",
+        "To track the number of times a job has been added to the queue",
+        "To track the number of times a job has been removed from the queue"
+      ],
+      "correctAnswer": 1
+    },
+    {
+      "question": "What happens to a job after it has exhausted its maximum number of retries?",
+      "answers": [
+        "It is removed from the queue",
+        "It is added to the Dead Letter Queue (DLQ)",
+        "It is retried again after a certain amount of time",
+        "It is executed again with a different command"
+      ],
+      "correctAnswer": 2
+    },
+    {
+      "question": "What is the purpose of the 'config set' command in the QueueCTL system?",
+      "answers": [
+        "To manage configuration settings such as retry count and backoff base",
+        "To add a new job to the queue",
+        "To start a worker process",
+        "To stop a worker process"
+      ],
+      "correctAnswer": 1
+    }
+  ]
+}

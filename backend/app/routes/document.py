@@ -1,6 +1,9 @@
 from fastapi import APIRouter, UploadFile, File
 import os
 import shutil
+from collections import Counter
+import json
+from fastapi import HTTPException
 
 from app.services.pdf_service import extract_text
 from app.services.chunk_service import chunk_text
@@ -20,12 +23,11 @@ router = APIRouter(
 )
 
 UPLOAD_DIR = "data/uploads"
+ANALYSIS_DIR = "data/analysis"
+
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(ANALYSIS_DIR, exist_ok=True)
 
-
-# ===========================
-# Upload Document
-# ===========================
 
 @router.post("/upload")
 async def upload_document(file: UploadFile = File(...)):
@@ -48,13 +50,22 @@ async def upload_document(file: UploadFile = File(...)):
     stored = store_chunks(chunks, metadata)
 
     # Step 5 : Extract Knowledge Graph
-    graph = extract_graph_from_text(text)
+    graph = extract_graph_from_text(text[:12000])
 
     # Step 6 : Save Graph in Neo4j
     graph_status = create_entities_and_relationships(graph)
 
     # Step 7 : AI Analysis
-    analysis = analyze_document(file.filename, text)
+    analysis = analyze_document(file.filename, text[:12000])
+
+    # Step 8 : Save Analysis
+    analysis_file = os.path.join(
+        ANALYSIS_DIR,
+        f"{os.path.splitext(file.filename)[0]}.json"
+    )
+
+    with open(analysis_file, "w", encoding="utf-8") as f:
+        json.dump(analysis, f, indent=2, ensure_ascii=False)
 
     return {
         "status": "success",
@@ -64,11 +75,6 @@ async def upload_document(file: UploadFile = File(...)):
         "graph": graph_status,
         "analysis": analysis
     }
-
-
-# ===========================
-# Get Uploaded Documents
-# ===========================
 
 @router.get("/")
 async def get_documents():
@@ -105,3 +111,74 @@ async def get_documents():
         "count": len(documents),
         "documents": documents
     }
+
+
+@router.get("/dashboard")
+async def dashboard():
+
+    documents = []
+
+    if os.path.exists(UPLOAD_DIR):
+
+        for filename in os.listdir(UPLOAD_DIR):
+
+            path = os.path.join(UPLOAD_DIR, filename)
+
+            if os.path.isfile(path):
+                documents.append({
+                    "name": filename,
+                    "type": filename.split(".")[-1].upper(),
+                    "size": round(os.path.getsize(path)/1024,2),
+                    "uploaded_at": os.path.getctime(path)
+                })
+
+    type_counter = Counter(d["type"] for d in documents)
+
+    recent = sorted(
+        documents,
+        key=lambda x: x["uploaded_at"],
+        reverse=True
+    )[:5]
+
+    return {
+        "totalDocuments": len(documents),
+        "totalAssets": len(documents),          # temporary
+        "openIncidents": 0,
+        "avgTimeToAnswer": "1.2 s",
+
+        "documentsByType": [
+            {
+                "type": k,
+                "count": v
+            }
+            for k, v in type_counter.items()
+        ],
+
+        "recentActivity": [
+            {
+                "text": f"Uploaded {d['name']}",
+                "time": "Just now"
+            }
+            for d in recent
+        ]
+    }
+
+
+@router.get("/analysis/{filename}")
+async def get_analysis(filename: str):
+
+    name = os.path.splitext(filename)[0]
+
+    path = os.path.join(
+        ANALYSIS_DIR,
+        f"{name}.json"
+    )
+
+    if not os.path.exists(path):
+        raise HTTPException(
+            status_code=404,
+            detail="Analysis not found"
+        )
+
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)

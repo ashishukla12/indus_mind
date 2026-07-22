@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import { FileText, Search } from "lucide-react";
+import { FileText, Search, Eye, Brain } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
 import { fetchDocuments } from "../../api/client";
 import DocumentDetailModal from "./DocumentDetailModal";
 import EmptyState from "../common/EmptyState";
@@ -13,6 +15,7 @@ export default function DocumentsPage() {
   const [selectedDoc, setSelectedDoc] = useState(null);
 
   const showToast = useToast();
+  const navigate = useNavigate();
 
   const loadDocuments = async () => {
 
@@ -22,7 +25,7 @@ export default function DocumentsPage() {
 
       const res = await fetchDocuments();
 
-      setDocs(res.documents || []);
+      setDocs(Array.isArray(res) ? res : (res.documents || []));
 
     } catch (err) {
 
@@ -42,16 +45,27 @@ export default function DocumentsPage() {
 
   }, []);
 
-  const filtered = docs.filter((doc) =>
-    doc.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = docs.filter((doc) => {
 
-  if (loading)
+    const name = doc.name || doc.filename || "";
+
+    return name.toLowerCase().includes(search.toLowerCase());
+
+  });
+
+  if (loading) {
+
     return (
+
       <div className="p-6">
+
         Loading documents...
+
       </div>
+
     );
+
+  }
 
   return (
 
@@ -65,15 +79,10 @@ export default function DocumentsPage() {
         />
 
         <input
-
           value={search}
-
           onChange={(e) => setSearch(e.target.value)}
-
           placeholder="Search documents..."
-
           className="w-full bg-panel border border-line rounded-md pl-8 pr-3 py-2 text-sm"
-
         />
 
       </div>
@@ -85,13 +94,9 @@ export default function DocumentsPage() {
         (
 
           <EmptyState
-
             type="empty"
-
             title="No uploaded documents"
-
             subtitle="Upload a PDF to see it here."
-
           />
 
         )
@@ -108,11 +113,21 @@ export default function DocumentsPage() {
 
                 <tr className="bg-panel-2">
 
-                  <th className="px-4 py-3 text-left">Document</th>
+                  <th className="px-4 py-3 text-left">
+                    Document
+                  </th>
 
-                  <th className="px-4 py-3 text-left">Type</th>
+                  <th className="px-4 py-3 text-left">
+                    Type
+                  </th>
 
-                  <th className="px-4 py-3 text-left">Size</th>
+                  <th className="px-4 py-3 text-left">
+                    Size
+                  </th>
+
+                  <th className="px-4 py-3 text-center">
+                    Actions
+                  </th>
 
                 </tr>
 
@@ -122,23 +137,22 @@ export default function DocumentsPage() {
 
                 {
 
-                  filtered.map((doc)=>(
+                  filtered.map((doc) => (
 
                     <tr
-
                       key={doc.id}
-
-                      onClick={()=>setSelectedDoc(doc)}
-
-                      className="border-t border-line hover:bg-panel-2 cursor-pointer"
-
+                      className="border-t border-line hover:bg-panel-2"
                     >
 
-                      <td className="px-4 py-3 flex items-center gap-2">
+                      <td className="px-4 py-3">
 
-                        <FileText size={15}/>
+                        <div className="flex items-center gap-2">
 
-                        {doc.name}
+                          <FileText size={15} />
+
+                          {doc.name}
+
+                        </div>
 
                       </td>
 
@@ -151,6 +165,46 @@ export default function DocumentsPage() {
                       <td className="px-4 py-3">
 
                         {doc.size_kb} KB
+
+                      </td>
+
+                      <td className="px-4 py-3">
+
+                        <div className="flex justify-center gap-2">
+
+                          <button
+
+                            onClick={() => setSelectedDoc(doc)}
+
+                            className="px-3 py-1 rounded border border-line bg-panel hover:border-steel transition flex items-center gap-1"
+
+                          >
+
+                            <Eye size={14} />
+
+                            View
+
+                          </button>
+
+                          <button
+
+                            onClick={() =>
+                              navigate(
+                                `/analysis?file=${encodeURIComponent(doc.name)}`
+                              )
+                            }
+
+                            className="px-3 py-1 rounded bg-signal text-black hover:opacity-90 transition flex items-center gap-1"
+
+                          >
+
+                            <Brain size={14} />
+
+                            Analyze
+
+                          </button>
+
+                        </div>
 
                       </td>
 
@@ -171,11 +225,8 @@ export default function DocumentsPage() {
       }
 
       <DocumentDetailModal
-
         doc={selectedDoc}
-
-        onClose={()=>setSelectedDoc(null)}
-
+        onClose={() => setSelectedDoc(null)}
       />
 
     </div>

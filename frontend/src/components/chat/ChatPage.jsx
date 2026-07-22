@@ -1,7 +1,6 @@
 import { useState, useRef } from "react";
 import { Send, FileText, Mail, Wrench, AlertTriangle, ClipboardList } from "lucide-react";
 import { sendChatQuery } from "../../api/client";
-import { DOCUMENTS, DOC_TYPE_META } from "../../mock/data";
 import DocumentDetailModal from "../documents/DocumentDetailModal";
 
 const SUGGESTIONS = [
@@ -10,17 +9,7 @@ const SUGGESTIONS = [
   "Was there an early warning before the Pump-101 trip?",
 ];
 
-const TRACE_ICON = {
-  inspection: ClipboardList,
-  email: Mail,
-  incident: AlertTriangle,
-  maintenance: Wrench,
-  work_order: FileText,
-};
 
-function docById(id) {
-  return DOCUMENTS.find((d) => d.id === id);
-}
 
 export default function ChatPage() {
   const [messages, setMessages] = useState([]);
@@ -30,20 +19,62 @@ export default function ChatPage() {
   const endRef = useRef(null);
 
   async function handleSend(text) {
-    const query = (text ?? input).trim();
-    if (!query || loading) return;
-    setInput("");
-    setMessages((m) => [...m, { role: "user", text: query }]);
-    setLoading(true);
-    try {
-      const res = await sendChatQuery(query);
-      setMessages((m) => [...m, { role: "assistant", data: res }]);
-    } finally {
-      setLoading(false);
-      setTimeout(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+
+  const query = (text ?? input).trim();
+
+  if (!query || loading) return;
+
+  setInput("");
+
+  setMessages((prev) => [
+    ...prev,
+    {
+      role: "user",
+      text: query
     }
+  ]);
+
+  setLoading(true);
+
+  try {
+
+    const res = await sendChatQuery(query);
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        data: res
+      }
+    ]);
+
+  } catch (e) {
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        data: {
+          answer: "Unable to generate response.",
+          confidence: "Low",
+          sources: []
+        }
+      }
+    ]);
+
+  } finally {
+
+    setLoading(false);
+
+    setTimeout(() => {
+      endRef.current?.scrollIntoView({
+        behavior: "smooth"
+      });
+    }, 100);
+
   }
 
+}
   return (
     <div className="flex flex-col h-full">
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
@@ -110,57 +141,76 @@ export default function ChatPage() {
   );
 }
 
-function AssistantAnswer({ data, onCiteClick }) {
+function AssistantAnswer({ data }) {
+
   return (
+
     <div className="max-w-3xl">
+
       <div className="bg-panel border border-line rounded-lg rounded-tl-sm px-5 py-4">
+
         <div className="flex items-center gap-2 mb-3">
-          <span className="tag-mono text-[10px] uppercase tracking-widest text-steel">Root Cause Analysis</span>
-          <span className="tag-mono text-[10px] px-1.5 py-0.5 rounded bg-panel-2 border border-line text-muted">
-            Confidence: {data.confidence}
+
+          <span className="tag-mono text-[10px] uppercase tracking-widest text-steel">
+            AI Response
           </span>
+
+          {data.confidence && (
+
+            <span className="tag-mono text-[10px] px-2 py-1 rounded bg-panel-2 border border-line">
+
+              Confidence: {data.confidence}
+
+            </span>
+
+          )}
+
         </div>
-        <p className="text-sm leading-relaxed text-text">{data.answer}</p>
+
+        <p className="text-sm leading-relaxed">
+
+          {data.answer}
+
+        </p>
+
       </div>
 
-      <div className="mt-4 pl-1">
-        <p className="tag-mono text-[10px] uppercase tracking-widest text-muted mb-3">Evidence trace</p>
-        <div className="relative">
-          <div className="absolute left-[15px] top-4 bottom-4 w-px bg-gradient-to-b from-steel via-signal to-critical opacity-40" />
-          <div className="space-y-4">
-            {data.trace.map((step, i) => {
-              const doc = docById(step.docId);
-              const meta = doc ? DOC_TYPE_META[doc.type] : null;
-              const Icon = TRACE_ICON[doc?.type] || FileText;
-              return (
-                <div key={i} className="relative flex gap-4 items-start">
-                  <div
-                    className="w-8 h-8 rounded-full border-2 flex items-center justify-center bg-ink shrink-0 z-10"
-                    style={{ borderColor: meta?.color || "#4FB4AC" }}
-                  >
-                    <Icon size={14} style={{ color: meta?.color || "#4FB4AC" }} />
-                  </div>
-                  <div className="pt-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium">{step.label}</span>
-                      <span className="tag-mono text-[10px] text-muted">{step.date}</span>
-                    </div>
-                    <p className="text-xs text-muted mt-0.5">{step.note}</p>
-                    {doc && (
-                      <button
-                        onClick={() => onCiteClick(doc)}
-                        className="tag-mono text-[10px] text-steel mt-1 hover:text-signal transition-colors"
-                      >
-                        source: {doc.title}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+      {data.sources?.length > 0 && (
+  <div className="mt-5">
+
+    <p className="tag-mono text-[10px] uppercase tracking-widest text-muted mb-3">
+      Sources
+    </p>
+
+    <div className="space-y-2">
+
+      {data.sources.map((source, index) => (
+
+        <div
+          key={index}
+          className="border border-line rounded-md p-3 bg-panel-2"
+        >
+          <div className="flex items-center gap-2">
+            <FileText size={14} />
+            <span className="text-sm">
+              {source.document}
+            </span>
           </div>
+
+          <p className="text-xs text-muted mt-1">
+            Chunk {source.chunk}
+          </p>
+
         </div>
-      </div>
+
+      ))}
+
     </div>
+
+  </div>
+)}
+ </div>
+
   );
+
 }

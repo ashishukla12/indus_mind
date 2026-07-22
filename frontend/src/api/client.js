@@ -25,18 +25,45 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8000";
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export async function fetchAssets() {
-  const res = await fetch(`${BASE_URL}/api/assets`, { headers: authHeaders() });
-  if (!res.ok) throw new Error("Failed to fetch assets");
-  return res.json();
+
+    const docs = await fetchDocuments();
+
+    return docs.documents.map((doc,index)=>({
+
+        id:`DOC-${index+1}`,
+
+        type:doc.type,
+
+        status:"normal"
+
+    }));
+
 }
 
 export async function fetchDocuments({ asset, type } = {}) {
-  await delay(250);
-  return DOCUMENTS.filter(
-    (d) =>
-      (!asset || asset === "ALL" || d.asset === asset || d.asset === "ALL") &&
-      (!type || type === "ALL" || d.type === type)
-  );
+  const res = await fetch(`${BASE_URL}/documents`);
+
+  if (!res.ok) {
+    throw new Error("Failed to fetch documents");
+  }
+
+  const data = await res.json();
+
+  let documents = data.documents || [];
+
+  if (asset && asset !== "ALL") {
+    documents = documents.filter((d) => d.asset === asset);
+  }
+
+  if (type && type !== "ALL") {
+    documents = documents.filter((d) => d.type === type);
+  }
+
+  return {
+    status: data.status,
+    count: documents.length,
+    documents,
+  };
 }
 
 export async function fetchTimeline(assetId) {
@@ -45,8 +72,13 @@ export async function fetchTimeline(assetId) {
 }
 
 export async function fetchDashboardStats() {
-  await delay(150);
-  return DASHBOARD_STATS;
+
+    const res = await fetch(`${BASE_URL}/documents/dashboard`);
+
+    if (!res.ok)
+        throw new Error("Dashboard failed");
+
+    return await res.json();
 }
 
 const COMPRESSOR_RESPONSE = {
@@ -73,28 +105,44 @@ const EARLY_WARNING_RESPONSE = {
   ],
 };
 
-export async function sendChatQuery(query) {
+export async function sendChatQuery(question) {
 
-  const res = await fetch(`${BASE_URL}/chat/ask`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      question: query
-    })
-  });
+    const res = await fetch(`${BASE_URL}/chat/ask`, {
 
-  if (!res.ok) {
-    throw new Error("Chat request failed");
-  }
+        method: "POST",
 
-  return await res.json();
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            question
+        })
+
+    });
+
+    if (!res.ok)
+        throw new Error("Chat failed");
+
+    return await res.json();
+
 }
 
 export async function uploadDocument(file) {
-  await delay(600);
-  return { id: `doc-${Date.now()}`, title: file?.name || "Untitled", status: "processed" };
+
+    const formData = new FormData();
+
+    formData.append("file", file);
+
+    const res = await fetch(`${BASE_URL}/documents/upload`, {
+        method: "POST",
+        body: formData
+    });
+
+    if (!res.ok)
+        throw new Error("Upload failed");
+
+    return await res.json();
 }
 
 export async function fetchGraph() {
@@ -176,4 +224,17 @@ export async function fetchBackendDocuments() {
   }
 
   return await res.json();
+}
+
+export async function fetchAnalysis(filename){
+
+    const res = await fetch(
+        `${BASE_URL}/documents/analysis/${encodeURIComponent(filename)}`
+    );
+
+    if(!res.ok)
+        throw new Error("Analysis not found");
+
+    return await res.json();
+
 }
