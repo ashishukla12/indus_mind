@@ -32,6 +32,4 @@ def semantic_search(request: QueryRequest):
 @router.post("/ask")
 def ask_ai(request: QuestionRequest):
 
-    answer = generate_answer(request.question)
-
-    return answer
+    return generate_answer(request.question)
