@@ -19,7 +19,9 @@ def generate_answer(question: str):
     if not results:
         return {
             "answer": "I could not find any relevant information in the uploaded documents.",
-            "sources": []
+            "confidence": "Low",
+            "trace": [],
+            "citations": []
         }
 
     context = "\n\n".join(
@@ -58,11 +60,21 @@ Question:
 
     return {
         "answer": response.choices[0].message.content,
-        "sources": [
+        "confidence": "High",
+        "trace": [
             {
-                "document": item["source"],
-                "chunk": item["chunk_number"]
+                "docId": f"doc-{i+1}",
+                "label": item["source"],
+                "date": "",
+                "note": f"Retrieved from Chunk {item['chunk_number']}"
             }
-            for item in results
+            for i, item in enumerate(results)
+        ],
+        "citations": [
+            {
+                "docId": f"doc-{i+1}",
+                "snippetRef": f"Chunk {item['chunk_number']}"
+            }
+            for i, item in enumerate(results)
         ]
     }
