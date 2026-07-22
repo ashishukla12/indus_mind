@@ -1,0 +1,15 @@
+# Chroma Vector DB
+data/chroma/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Environment
+.env
+__pycache__/
+venv/
+.env.*
+
+# Uploaded files (optional)
+data/uploads/
