@@ -1,0 +1,51 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+@theme {
+  --color-ink: #0A121C;
+  --color-panel: #101B29;
+  --color-panel-2: #17293B;
+  --color-line: #24384C;
+  --color-signal: #F5A623;
+  --color-signal-dim: #8A6521;
+  --color-steel: #4FB4AC;
+  --color-critical: #E5573D;
+  --color-text: #E7EEF5;
+  --color-muted: #7C93A8;
+  --font-sans: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--color-ink);
+  color: var(--color-text);
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+::selection {
+  background: var(--color-signal);
+  color: var(--color-ink);
+}
+
+/* subtle scanline / grid texture on the app shell */
+.grid-texture {
+  background-image:
+    linear-gradient(rgba(79,180,172,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,180,172,0.05) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.tag-mono {
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }
