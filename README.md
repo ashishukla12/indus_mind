@@ -91,25 +91,152 @@ The platform combines **Retrieval-Augmented Generation (RAG)**, **Knowledge Grap
 # 📂 Project Structure
 
 ```
-industrial-knowledge-ai/
-
+indus_mind/
+│
+├── README.md
+├── LICENSE
 │
 ├── frontend/
-│   ├── src/
 │   ├── public/
-│   └── package.json
+│   │   ├── favicon.svg
+│   │   ├── icons.svg
+│   │   └── images/
+│   │       └── refinery.png
+│   │
+│   ├── src/
+│   │   ├── api/
+│   │   │   └── client.js
+│   │   │
+│   │   ├── assets/
+│   │   │   ├── hero.png
+│   │   │   ├── react.svg
+│   │   │   └── vite.svg
+│   │   │
+│   │   ├── components/
+│   │   │   ├── auth/
+│   │   │   │   ├── LoginPage.jsx
+│   │   │   │   └── SignupPage.jsx
+│   │   │   │
+│   │   │   ├── chat/
+│   │   │   │   └── ChatPage.jsx
+│   │   │   │
+│   │   │   ├── common/
+│   │   │   │   ├── EmptyState.jsx
+│   │   │   │   └── Toast.jsx
+│   │   │   │
+│   │   │   ├── dashboard/
+│   │   │   │   └── DashboardPage.jsx
+│   │   │   │
+│   │   │   ├── documents/
+│   │   │   │   ├── DocumentDetailModal.jsx
+│   │   │   │   └── DocumentsPage.jsx
+│   │   │   │
+│   │   │   ├── home/
+│   │   │   │   ├── Navbar.jsx
+│   │   │   │   ├── Hero.jsx
+│   │   │   │   ├── Features.jsx
+│   │   │   │   ├── Workflow.jsx
+│   │   │   │   ├── Stats.jsx
+│   │   │   │   ├── About.jsx
+│   │   │   │   ├── Team.jsx
+│   │   │   │   └── Footer.jsx
+│   │   │   │
+│   │   │   ├── knowledge-graph/
+│   │   │   │   └── knowledgeGraphPage.jsx
+│   │   │   │
+│   │   │   ├── layout/
+│   │   │   │   ├── DashboardLayout.jsx
+│   │   │   │   ├── Sidebar.jsx
+│   │   │   │   └── Topbar.jsx
+│   │   │   │
+│   │   │   ├── timeline/
+│   │   │   │   └── TimelinePage.jsx
+│   │   │   │
+│   │   │   └── upload/
+│   │   │       └── UploadPage.jsx
+│   │   │
+│   │   ├── mock/
+│   │   │   └── data.js
+│   │   │
+│   │   ├── pages/
+│   │   │   └── Home.jsx
+│   │   │
+│   │   ├── App.jsx
+│   │   ├── main.jsx
+│   │   └── index.css
+│   │
+│   ├── index.html
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── vite.config.js
+│   └── postcss.config.js
 │
 ├── backend/
 │   ├── app/
-│   ├── ai/
-│   ├── config/
-│   └── requirements.txt
+│   │   ├── database/
+│   │   │   ├── chroma.py
+│   │   │   └── neo4j.py
+│   │   │
+│   │   ├── routes/
+│   │   │   ├── health.py
+│   │   │   ├── chat.py
+│   │   │   ├── document.py
+│   │   │   ├── analysis.py
+│   │   │   └── graph.py
+│   │   │
+│   │   ├── services/
+│   │   │   ├── pdf_service.py
+│   │   │   ├── chunk_service.py
+│   │   │   ├── embedding_service.py
+│   │   │   ├── metadata_service.py
+│   │   │   ├── graph_service.py
+│   │   │   ├── rag_service.py
+│   │   │   ├── analysis_service.py
+│   │   │   └── search_service.py
+│   │   │
+│   │   └── main.py
+│   │
+│   ├── data/
+│   │   ├── chroma/
+│   │   └── uploads/
+│   │
+│   ├── requirements.txt
+│   ├── test_neo4j.py
+│   └── .env
 │
-├── docker/
-├── docs/
-├── tests/
-└── docker-compose.yml
+└── docs/ (recommended)
 ```
+
+# High-Level Architecture
+```
+indus_mind/
+│
+├── frontend/                  # React + Vite UI
+│   ├── Authentication
+│   ├── Dashboard
+│   ├── Document Upload
+│   ├── AI Chat
+│   ├── Knowledge Graph
+│   ├── Timeline
+│   └── Landing Page
+│
+├── backend/                   # FastAPI Backend
+│   ├── API Routes
+│   ├── AI Services
+│   ├── Database Layer
+│   ├── Vector Search (ChromaDB)
+│   ├── Knowledge Graph (Neo4j)
+│   └── RAG Pipeline
+│
+├── docs/                      # Documentation
+├── docker/                    # Docker files (recommended)
+├── tests/                     # Unit Tests (recommended)
+├── docker-compose.yml          # Container orchestration (recommended)
+├── README.md
+└── LICENSE
+```
+
+
 
 ---
 
